@@ -6,6 +6,9 @@
 # Ignore all environment‐specific appsettings
 appsettings.*.json
 
+# Ignore Data folder (with large openpowerlifting.csv file)
+Data/
+
 # User-specific files
 *.rsuser
 *.suo

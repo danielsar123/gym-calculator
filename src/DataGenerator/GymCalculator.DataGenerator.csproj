@@ -7,4 +7,19 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Data\openpowerlifting-2024-01-06.csv" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Data\openpowerlifting-2024-01-06.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="33.1.0" />
+    <PackageReference Include="FluentAssertions" Version="8.5.0" />
+  </ItemGroup>
+
 </Project>
