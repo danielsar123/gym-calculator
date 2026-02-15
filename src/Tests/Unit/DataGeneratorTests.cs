@@ -4,8 +4,9 @@ using FluentAssertions;
 using GymCalculator.DataGenerator.Services;
 using Xunit;
 
-namespace GymCalculator.Tests.DataGenerator
+namespace GymCalculator.Tests.Unit
 {
+    [Trait("Category", "Unit")]
     public class DataGeneratorServiceTests : IDisposable
     {
         private readonly string _tempDir;

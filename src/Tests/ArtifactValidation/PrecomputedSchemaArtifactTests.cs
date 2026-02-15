@@ -4,13 +4,11 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace GymCalculator.Tests.Schema
+namespace GymCalculator.Tests.ArtifactValidation
 {
-    public class PrecomputedSchemaValidator
+    [Trait("Category", "Artifact")]
+    public class PrecomputedSchemaArtifactTests
     {
-        private static readonly string DefaultDir =
-            @"C:\src\Repos\GymCalculator\src\DataGenerator\bin\Debug\net9.0\Data\PWLiftingDataSortedByAgeClass";
-
         // Allowed IPF Open classes per sex:
         private static readonly HashSet<string> MaleWc = new(StringComparer.Ordinal)
             { "59","66","74","83","93","105","120","120+" };
@@ -21,7 +19,12 @@ namespace GymCalculator.Tests.Schema
         public void All_Files_Conform_To_Schema_And_Invariants()
         {
             var root = Environment.GetEnvironmentVariable("GYMCALC_PRECOMP_DIR");
-            if (string.IsNullOrWhiteSpace(root)) root = DefaultDir;
+
+            if (string.IsNullOrWhiteSpace(root))
+            {
+                throw new InvalidOperationException(
+                    "GYMCALC_PRECOMP_DIR must be set for Artifact tests.");
+            }
 
             Directory.Exists(root).Should().BeTrue($"Precomputed dir not found: {root}");
 
