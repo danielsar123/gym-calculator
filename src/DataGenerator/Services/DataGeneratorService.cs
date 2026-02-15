@@ -15,28 +15,54 @@ namespace GymCalculator.DataGenerator.Services
             // AgeClass -> Sex -> NormWeightClass -> Bucket
             var buckets = new Dictionary<string, Dictionary<string, Dictionary<string, Bucket>>>();
 
+            long totalRows = 0;
+            long skippedRows = 0;
+
+            var numRecordsPerAgeClass = new Dictionary<string, long>(); // AgeClass -> count
+
             using var reader = new StreamReader(csvPath);
             using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
 
             while (csv.Read())
             {
+                totalRows++;
+
                 var r = csv.GetRecord<LifterRecord>();
 
                 // skip DQ / NS / DD / G etc (anything non-numeric or <1)
-                if (!int.TryParse(r.Place, out var place) || place < 1) continue;
+                if (!int.TryParse(r.Place, out var place) || place < 1)
+                {
+                    skippedRows++;
+                    continue;
+                }
 
-                if (string.IsNullOrWhiteSpace(r.AgeClass)) continue;
+                if (!double.TryParse(r.Age, NumberStyles.Float, CultureInfo.InvariantCulture, out var ageDouble))
+                {
+                    skippedRows++;
+                    continue;
+                }
+
+                var ageInt = (int)Math.Floor(ageDouble);
+                var ageClass = AgeClassHelper.ToAgeClass(ageInt);
 
                 var sex = r.Sex?.Trim();
                 if (!string.Equals(sex, "M", StringComparison.OrdinalIgnoreCase) &&
                     !string.Equals(sex, "F", StringComparison.OrdinalIgnoreCase))
+                {
+                    skippedRows++;
                     continue;
+                }
 
                 // normalize weight class per sex (IPF Open sets)
                 var wc = NormalizeWeightClass(r.WeightClassKg, sex!);
-                if (wc == null) continue;
+                if (wc == null)
+                {
+                    skippedRows++;
+                    continue;
+                }
 
-                var bySex = buckets.GetOrAdd(r.AgeClass, () => new Dictionary<string, Dictionary<string, Bucket>>());
+                numRecordsPerAgeClass[ageClass] = numRecordsPerAgeClass.GetValueOrDefault(ageClass) + 1;
+                var bySex = buckets.GetOrAdd(ageClass, () => new Dictionary<string, Dictionary<string, Bucket>>());
                 var byWeight = bySex.GetOrAdd(sex!, () => new Dictionary<string, Bucket>());
                 var bucket = byWeight.GetOrAdd(wc, () => new Bucket());
 
@@ -101,6 +127,20 @@ namespace GymCalculator.DataGenerator.Services
                 JsonSerializer.Serialize(writer, model);
                 Console.WriteLine($"Wrote {Path.GetFileName(outputFile)}");
             }
+
+            Console.WriteLine("----- DATA GENERATION SUMMARY -----");
+            Console.WriteLine($"Total rows read: {totalRows}");
+            Console.WriteLine($"Total rows skipped: {skippedRows}");
+            Console.WriteLine($"Total rows used: {totalRows - skippedRows}");
+            Console.WriteLine();
+
+            foreach (var kv in numRecordsPerAgeClass.OrderBy(k => k.Key))
+            {
+                Console.WriteLine($"AgeClass {kv.Key}: {kv.Value} records");
+            }
+
+            Console.WriteLine("-----------------------------------");
+
         }
 
         private TestGroupMetrics BuildTestGroupDistinct(List<LifterData> lifters)

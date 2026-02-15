@@ -6,7 +6,7 @@ namespace GymCalculator.DataGenerator.Models
     public class LifterRecord
     {
         [Name("Place")] public string Place { get; set; }
-        [Name("AgeClass")] public string AgeClass { get; set; }
+        [Name("Age")] public string Age { get; set; }
         [Name("Sex")] public string Sex { get; set; }
         [Name("WeightClassKg")] public string WeightClassKg { get; set; }
         [Name("Tested")] public string Tested { get; set; }

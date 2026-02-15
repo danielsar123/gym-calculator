@@ -37,15 +37,15 @@ namespace GymCalculator.Tests.Unit
         public void Global_PerSex_DotsWilks_DistinctArrays_And_Counts()
         {
             WriteCsv(
-                "Place,AgeClass,Sex,WeightClassKg,Tested,Equipment,Best3BenchKg,Best3SquatKg,Best3DeadliftKg,Dots,Wilks",
-                "1,24-34,M,93,Yes,raw,100,200,300,15,20",
-                "2,24-34,M,93,No,raw,50,150,250,12,18",
-                "1,24-34,F,63,Yes,raw,60,120,180,10,16"
+                "Place,Age,Sex,WeightClassKg,Tested,Equipment,Best3BenchKg,Best3SquatKg,Best3DeadliftKg,Dots,Wilks",
+                "1,25,M,93,Yes,raw,100,200,300,15,20",
+                "2,25,M,93,No,raw,50,150,250,12,18",
+                "1,25,F,63,Yes,raw,60,120,180,10,16"
             );
 
             new DataGeneratorService().GeneratePerAgeWithPercentiles(_csvPath, _outDir);
 
-            var file2434 = Path.Combine(_outDir, "precomputed_24_34.json");
+            var file2434 = Path.Combine(_outDir, "precomputed_23_34.json");
             File.Exists(file2434).Should().BeTrue();
 
             var root = JsonDocument.Parse(File.ReadAllText(file2434)).RootElement;
@@ -74,14 +74,14 @@ namespace GymCalculator.Tests.Unit
         public void PerWeight_Sex_Tested_Equipment_DistinctCurves_And_PerMetricCounts()
         {
             WriteCsv(
-                "Place,AgeClass,Sex,WeightClassKg,Tested,Equipment,Best3BenchKg,Best3SquatKg,Best3DeadliftKg,Dots,Wilks",
-                "1,24-34,M,93,Yes,raw,100,200,300,15,20",
-                "2,24-34,M,93,Yes,raw,100,210,310,14,19",     // duplicate bench 100
-                "3,24-34,M,93,Yes,single-ply,0,250,320,13,18" // 0 bench, positive squat/dl
+                "Place,Age,Sex,WeightClassKg,Tested,Equipment,Best3BenchKg,Best3SquatKg,Best3DeadliftKg,Dots,Wilks",
+                "1,25,M,93,Yes,raw,100,200,300,15,20",
+                "2,25,M,93,Yes,raw,100,210,310,14,19",     // duplicate bench 100
+                "3,25,M,93,Yes,single-ply,0,250,320,13,18" // 0 bench, positive squat/dl
             );
 
             new DataGeneratorService().GeneratePerAgeWithPercentiles(_csvPath, _outDir);
-            var file = Path.Combine(_outDir, "precomputed_24_34.json");
+            var file = Path.Combine(_outDir, "precomputed_23_34.json");
             var root = JsonDocument.Parse(File.ReadAllText(file)).RootElement;
 
             var wc93M = root.GetProperty("Sex").GetProperty("M")
@@ -119,13 +119,13 @@ namespace GymCalculator.Tests.Unit
         public void MetricNull_When_LessThanTwoValid_InGroup()
         {
             WriteCsv(
-                "Place,AgeClass,Sex,WeightClassKg,Tested,Equipment,Best3BenchKg,Best3SquatKg,Best3DeadliftKg,Dots,Wilks",
-                "1,24-34,M,83,Yes,raw,100,0,0,12,18",
-                "2,24-34,M,83,Yes,raw,0,0,0,13,19"
+                "Place,Age,Sex,WeightClassKg,Tested,Equipment,Best3BenchKg,Best3SquatKg,Best3DeadliftKg,Dots,Wilks",
+                "1,25,M,83,Yes,raw,100,0,0,12,18",
+                "2,25,M,83,Yes,raw,0,0,0,13,19"
             );
 
             new DataGeneratorService().GeneratePerAgeWithPercentiles(_csvPath, _outDir);
-            var root = JsonDocument.Parse(File.ReadAllText(Path.Combine(_outDir, "precomputed_24_34.json"))).RootElement;
+            var root = JsonDocument.Parse(File.ReadAllText(Path.Combine(_outDir, "precomputed_23_34.json"))).RootElement;
 
             var wc83M = root.GetProperty("Sex").GetProperty("M")
                             .GetProperty("WeightClasses").GetProperty("83");
@@ -143,17 +143,17 @@ namespace GymCalculator.Tests.Unit
         public void Skips_NonNumericPlace_BlankAge_Mx_Sex()
         {
             WriteCsv(
-                "Place,AgeClass,Sex,WeightClassKg,Tested,Equipment,Best3BenchKg,Best3SquatKg,Best3DeadliftKg,Dots,Wilks",
-                "NS,24-34,M,93,Yes,raw,100,200,300,15,20",   // skip
-                "G,24-34,M,93,Yes,raw,120,210,310,16,21",    // skip
+                "Place,Age,Sex,WeightClassKg,Tested,Equipment,Best3BenchKg,Best3SquatKg,Best3DeadliftKg,Dots,Wilks",
+                "NS,25,M,93,Yes,raw,100,200,300,15,20",   // skip
+                "G,25,M,93,Yes,raw,120,210,310,16,21",    // skip
                 "1,,M,93,Yes,raw,130,220,320,17,22",         // skip (blank AgeClass)
-                "1,24-34,Mx,93,Yes,raw,140,230,330,18,23",   // skip (Mx)
-                "1,24-34,F,63,Yes,raw,60,120,180,10,16"      // valid
+                "1,25,Mx,93,Yes,raw,140,230,330,18,23",   // skip (Mx)
+                "1,25,F,63,Yes,raw,60,120,180,10,16"      // valid
             );
 
             new DataGeneratorService().GeneratePerAgeWithPercentiles(_csvPath, _outDir);
 
-            var file = Path.Combine(_outDir, "precomputed_24_34.json");
+            var file = Path.Combine(_outDir, "precomputed_23_34.json");
             File.Exists(file).Should().BeTrue();
 
             var root = JsonDocument.Parse(File.ReadAllText(file)).RootElement;
@@ -179,14 +179,14 @@ namespace GymCalculator.Tests.Unit
         public void DistinctArrays_Are_Ascending_And_Pcts_Monotonic()
         {
             WriteCsv(
-                "Place,AgeClass,Sex,WeightClassKg,Tested,Equipment,Best3BenchKg,Best3SquatKg,Best3DeadliftKg,Dots,Wilks",
-                "1,24-34,M,105,Yes,raw,120,210,300,14,20",
-                "2,24-34,M,105,Yes,raw,140,220,310,16,22",
-                "3,24-34,M,105,Yes,raw,130,230,320,15,21"
+                "Place,Age,Sex,WeightClassKg,Tested,Equipment,Best3BenchKg,Best3SquatKg,Best3DeadliftKg,Dots,Wilks",
+                "1,24,M,105,Yes,raw,120,210,300,14,20",
+                "2,24,M,105,Yes,raw,140,220,310,16,22",
+                "3,24,M,105,Yes,raw,130,230,320,15,21"
             );
 
             new DataGeneratorService().GeneratePerAgeWithPercentiles(_csvPath, _outDir);
-            var root = JsonDocument.Parse(File.ReadAllText(Path.Combine(_outDir, "precomputed_24_34.json"))).RootElement;
+            var root = JsonDocument.Parse(File.ReadAllText(Path.Combine(_outDir, "precomputed_23_34.json"))).RootElement;
 
             var grp = root.GetProperty("Sex").GetProperty("M")
                           .GetProperty("WeightClasses").GetProperty("105")
@@ -226,13 +226,13 @@ namespace GymCalculator.Tests.Unit
         public void TwoLifters_SameValue_Yields_SingleBreakpoint_With_Count2()
         {
             WriteCsv(
-                "Place,AgeClass,Sex,WeightClassKg,Tested,Equipment,Best3BenchKg,Best3SquatKg,Best3DeadliftKg,Dots,Wilks",
-                "1,24-34,M,74,Yes,raw,150,0,0,12,18",
-                "2,24-34,M,74,Yes,raw,150,0,0,13,19"
+                "Place,Age,Sex,WeightClassKg,Tested,Equipment,Best3BenchKg,Best3SquatKg,Best3DeadliftKg,Dots,Wilks",
+                "1,24,M,74,Yes,raw,150,0,0,12,18",
+                "2,24,M,74,Yes,raw,150,0,0,13,19"
             );
 
             new DataGeneratorService().GeneratePerAgeWithPercentiles(_csvPath, _outDir);
-            var root = JsonDocument.Parse(File.ReadAllText(Path.Combine(_outDir, "precomputed_24_34.json"))).RootElement;
+            var root = JsonDocument.Parse(File.ReadAllText(Path.Combine(_outDir, "precomputed_23_34.json"))).RootElement;
 
             var grp = root.GetProperty("Sex").GetProperty("M")
                           .GetProperty("WeightClasses").GetProperty("74")
