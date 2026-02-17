@@ -170,17 +170,29 @@ namespace GymCalculator.DataGenerator.Services
 
         private MetricCurve? BuildGlobalCurve(List<LifterData> list, Func<LifterData, double> selector)
         {
-            var valid = list.Select(selector).Where(v => v > 0).ToList();
-            if (valid.Count < 2) return null;
+            int before = list.Count;
+
+            int missingAnyLift = list.Count(ld =>
+                ld.Best3SquatKg <= 0 ||
+                ld.Best3BenchKg <= 0 ||
+                ld.Best3DeadliftKg <= 0);     // openpowerlifting csv included Wilks/Dots even if user didn't complete all three lifts, so filter to avoid skewing data
+
+            var valid = list
+                .Where(ld => ld.Best3SquatKg > 0 && ld.Best3BenchKg > 0 && ld.Best3DeadliftKg > 0)
+                .Select(selector)
+                .Where(v => v > 0)
+                .ToList();
+
+            int after = valid.Count;
+
+            Console.WriteLine($"[GlobalCurve] Before: {before}, MissingAnyLift: {missingAnyLift}, After: {after}, Removed: {before - after}");
+
+            if (after < 2) return null;
 
             var (vals, pcts) = PercentileCalculator.BuildMetricArrays(valid);
-            return new MetricCurve
-            {
-                Count = valid.Count,  // lifters contributing to this metric
-                Values = vals,         // distinct breakpoints
-                Pcts = pcts
-            };
+            return new MetricCurve { Count = after, Values = vals, Pcts = pcts };
         }
+
 
         private static MetricCurve BuildDistinctCurve(IEnumerable<double> values, int countForMetric)
         {
